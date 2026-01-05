@@ -1,0 +1,58 @@
+body{
+    background-color: moccasin
+}
+main{
+    background-color: peachpuff;
+    border: 3px solid rgb(204, 102, 0);
+    border-radius: 10px;
+    position: relative;
+    margin: 0vw 10vw;
+    padding: 0vw 10px 0vw 10px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.music-intro h1{
+    color:rgb(85, 26, 0);
+    text-align:center;
+    font-family: 'Arial Black', sans-serif;
+    font-size:36px;
+    padding:15px;
+}
+.music-intro p{
+    color:rgb(102, 51, 0);
+    font-family: 'Verdana', sans-serif;
+    text-align: center;
+    font-size: 18px;
+}
+.music-list h2{
+    color:rgb(85, 26, 0);
+    font-size:24px;
+    margin-top: 30px;
+}
+.seasons_info{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+.spring{
+    margin: 0px 20px 10px 20px;
+}
+.summer{
+    margin: 0px 20px 10px 20px;
+}
+.fall{
+    margin: 0px 20px 10px 20px;
+}
+.winter{
+    margin: 0px 20px 10px 20px;
+}
+.winter_b{
+    margin: 0px 20px 30px 20px;
+}
+@media screen and (max-width:768) {
+    main{
+        margin: 0vw;
+    }
+}

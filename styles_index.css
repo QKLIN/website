@@ -1,0 +1,98 @@
+@keyframes up
+{
+    0%{font-size: 25px}
+    100%{font-size: 30px;}
+}
+@keyframes down
+{
+    0%{font-size: 30px}
+    100%{font-size: 25px;}
+}
+body{
+    background-color: moccasin;
+    background-image: url("img/flower.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+main{
+    background-color: rgba(255, 218, 185, 0.733);
+    border: 3px solid rgb(204, 102, 0);
+    border-radius: 10px;
+    position: relative;
+    margin: 10vw 10vw 5vw 10vw;
+    padding: 0vw 20px 0vw 20px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+.moe{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.moe p{
+    font-size: 20px;
+    color: rgb(153, 51, 0);
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    margin: 0px;
+}
+main img{
+    display: block;
+    margin: 0px;
+    max-width: 100%;
+    height: auto;
+    will-change: transform;
+    transition: transform 0.3s ease-in-out;
+}
+main img:hover{
+    transform: scale(1.2);
+}
+main img:active{
+    transform: scale(1);
+    transition: transform 0.1s ease-in-out;
+}
+h1{
+    color:rgb(85, 26, 0);
+    text-align:center;
+    font-family: 'Arial Black', sans-serif;
+    font-size:36px;
+    padding:15px;
+}
+p{
+    color:rgb(102, 51, 0);
+    font-family: 'Verdana', sans-serif;
+    text-align: center;
+    font-size:18px;
+    line-height:1.6;
+    margin:20px;
+}
+.others p{
+    font-size:smaller
+}
+li{
+    display: inline;
+    margin: 4vw;
+}
+ul{
+    text-align: center;
+    list-style-type: none;
+    padding: 0;
+}
+li a{
+    color:rgb(102, 51, 0);
+    font-family: 'Verdana', sans-serif;
+    font-size:25px;
+    margin:10px 0;
+    line-height:1.5;
+    text-decoration: none;
+    will-change: animation;
+    animation-name: down;
+    animation-duration: 0.3s;
+    animation-fill-mode: forwards;
+}
+li a:hover{
+    text-decoration: underline;
+    animation-name: up;
+    animation-duration: 0.3s;
+    animation-fill-mode: forwards;
+}

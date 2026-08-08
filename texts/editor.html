@@ -43,6 +43,7 @@
             <div class="btn-row">
                 <button type="submit" class="btn btn-primary" id="btn-save">保存</button>
                 <button type="button" class="btn btn-danger" id="btn-delete" style="display:none;">删除</button>
+                <button type="button" class="btn btn-secondary" id="btn-export" title="导出 documents.json 用于跨设备部署">导出 JSON</button>
                 <a href="../text.html" class="btn btn-secondary">返回</a>
             </div>
         </form>
@@ -54,7 +55,7 @@
 
     <script src="../scripts/docs.js"></script>
     <script>
-        (function () {
+        SiteDocs.ready(function () {
             var form = document.getElementById('editor-form');
             var idInput = document.getElementById('doc-id');
             var categorySelect = document.getElementById('doc-category');
@@ -66,6 +67,7 @@
             var pageTitle = document.getElementById('page-title');
             var btnSave = document.getElementById('btn-save');
             var btnDelete = document.getElementById('btn-delete');
+            var btnExport = document.getElementById('btn-export');
             var msgDiv = document.getElementById('msg');
 
             var editId = getParam('id');
@@ -202,7 +204,21 @@
                     }, 1000);
                 }
             });
-        })();
+
+            btnExport.addEventListener('click', function () {
+                var json = SiteDocs.exportJSON();
+                var blob = new Blob([json], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'documents.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMsg('JSON 已导出，请将其放入 data/ 目录替换旧文件后部署', 'success');
+            });
+        });
     </script>
 </body>
 </html>

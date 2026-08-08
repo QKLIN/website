@@ -2,6 +2,7 @@ var SiteDocs = (function () {
     'use strict';
 
     var STORAGE_KEY = 'qkli_documents';
+    var JSON_PATH = '/data/documents.json';
 
     var CATEGORIES = {
         sus_note:  { name: '迷思随记', group: '日志', protected: true },
@@ -13,6 +14,10 @@ var SiteDocs = (function () {
 
     var AUTHOR_KEY = 'QKLEAF';
 
+    var _docs = [];
+    var _ready = false;
+    var _readyCallbacks = [];
+
     function isProtectedCategory(key) {
         var info = CATEGORIES[key];
         return info ? info.protected : false;
@@ -22,7 +27,7 @@ var SiteDocs = (function () {
         return 'doc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
     }
 
-    function loadAll() {
+    function loadLocal() {
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             return raw ? JSON.parse(raw) : [];
@@ -31,23 +36,112 @@ var SiteDocs = (function () {
         }
     }
 
-    function saveAll(docs) {
+    function saveLocal(docs) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
         } catch (e) {}
     }
 
+    function mergeRemoteLocal(remoteDocs, localDocs) {
+        var map = {};
+        var result = [];
+
+        for (var i = 0; i < remoteDocs.length; i++) {
+            var d = remoteDocs[i];
+            if (d.id) {
+                map[d.id] = d;
+                result.push(d);
+            }
+        }
+
+        for (var j = 0; j < localDocs.length; j++) {
+            var ld = localDocs[j];
+            if (ld.id && !map[ld.id]) {
+                result.push(ld);
+            } else if (ld.id && map[ld.id]) {
+                var rd = map[ld.id];
+                var rt = new Date(rd.updatedAt || rd.createdAt || 0).getTime();
+                var lt = new Date(ld.updatedAt || ld.createdAt || 0).getTime();
+                if (lt > rt) {
+                    for (var k = 0; k < result.length; k++) {
+                        if (result[k].id === ld.id) {
+                            result[k] = ld;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    function init() {
+        fetch(JSON_PATH)
+            .then(function (res) {
+                if (!res.ok) throw new Error('fetch failed');
+                return res.json();
+            })
+            .then(function (remote) {
+                var local = loadLocal();
+                _docs = mergeRemoteLocal(remote, local);
+                saveLocal(_docs);
+                _ready = true;
+                fireReady();
+            })
+            .catch(function () {
+                _docs = loadLocal();
+                _ready = true;
+                fireReady();
+            });
+    }
+
+    function fireReady() {
+        for (var i = 0; i < _readyCallbacks.length; i++) {
+            _readyCallbacks[i]();
+        }
+        _readyCallbacks = [];
+    }
+
+    function ready(cb) {
+        if (_ready) {
+            cb();
+        } else {
+            _readyCallbacks.push(cb);
+        }
+    }
+
+    function loadAll() {
+        return _docs.slice();
+    }
+
+    function saveAll(docs) {
+        _docs = docs.slice();
+        saveLocal(_docs);
+    }
+
+    function exportJSON() {
+        return JSON.stringify(_docs.map(function (d) {
+            var copy = {};
+            for (var key in d) {
+                if (d.hasOwnProperty(key)) copy[key] = d[key];
+            }
+            return copy;
+        }), null, 2);
+    }
+
     function addDoc(doc) {
-        var docs = loadAll();
+        var docs = _docs.slice();
         doc.id = doc.id || generateId();
         doc.createdAt = doc.createdAt || new Date().toISOString();
+        doc.updatedAt = new Date().toISOString();
         docs.push(doc);
         saveAll(docs);
         return doc;
     }
 
     function updateDoc(id, updates) {
-        var docs = loadAll();
+        var docs = _docs.slice();
         for (var i = 0; i < docs.length; i++) {
             if (docs[i].id === id) {
                 for (var key in updates) {
@@ -55,6 +149,7 @@ var SiteDocs = (function () {
                         docs[i][key] = updates[key];
                     }
                 }
+                docs[i].updatedAt = new Date().toISOString();
                 saveAll(docs);
                 return docs[i];
             }
@@ -63,7 +158,7 @@ var SiteDocs = (function () {
     }
 
     function deleteDoc(id) {
-        var docs = loadAll();
+        var docs = _docs.slice();
         var filtered = docs.filter(function (d) { return d.id !== id; });
         if (filtered.length !== docs.length) {
             saveAll(filtered);
@@ -73,7 +168,7 @@ var SiteDocs = (function () {
     }
 
     function getDoc(id) {
-        var docs = loadAll();
+        var docs = _docs;
         for (var i = 0; i < docs.length; i++) {
             if (docs[i].id === id) return docs[i];
         }
@@ -81,7 +176,7 @@ var SiteDocs = (function () {
     }
 
     function getDocsByCategory(category) {
-        return loadAll().filter(function (d) { return d.category === category; });
+        return _docs.filter(function (d) { return d.category === category; });
     }
 
     function getNeighbors(id) {
@@ -112,7 +207,10 @@ var SiteDocs = (function () {
         return CATEGORIES;
     }
 
+    init();
+
     return {
+        ready: ready,
         addDoc: addDoc,
         updateDoc: updateDoc,
         deleteDoc: deleteDoc,
@@ -122,6 +220,7 @@ var SiteDocs = (function () {
         getCategoryInfo: getCategoryInfo,
         getAllCategories: getAllCategories,
         loadAll: loadAll,
+        exportJSON: exportJSON,
         isProtectedCategory: isProtectedCategory,
         AUTHOR_KEY: AUTHOR_KEY
     };

@@ -32,7 +32,7 @@
 
     <script src="../scripts/docs.js"></script>
     <script>
-        (function () {
+        SiteDocs.ready(function () {
             var listEl = document.getElementById('doc-list');
             var docs = SiteDocs.getDocsByCategory('sus_note');
             if (!docs.length) {
@@ -50,7 +50,7 @@
                 li.appendChild(a);
                 listEl.appendChild(li);
             }
-        })();
+        });
     </script>
 </body>
 </html>

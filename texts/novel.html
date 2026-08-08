@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小说</title>
+    <link rel="stylesheet" href="../styles/directory.css">
+</head>
+<body>
+    <main>
+        <div class="intr">
+            <h1>小说</h1>
+            <p>偶尔脑洞大开写的小故事。</p>
+        </div>
+        <div class="section-divider">
+            <div class="dynamic-section">
+                <h2>目录</h2>
+                <ul class="dynamic-docs" id="doc-list"></ul>
+            </div>
+            <div class="add-new-entry">
+                <a href="editor.html?category=novel">+ 新增小说</a>
+            </div>
+        </div>
+        <div class="back-home">
+            <a href="../text.html">← 返回文字</a>
+            <a href="../index.html">← 回到首页</a>
+        </div>
+    </main>
+
+    <script src="../scripts/docs.js"></script>
+    <script>
+        (function () {
+            var listEl = document.getElementById('doc-list');
+            var docs = SiteDocs.getDocsByCategory('novel');
+            if (!docs.length) {
+                listEl.innerHTML = '<li style="color:rgb(153,102,51);font-family:Verdana,sans-serif;font-size:15px;text-align:center;padding:16px 0;">暂无内容</li>';
+                return;
+            }
+            docs.sort(function (a, b) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            for (var i = 0; i < docs.length; i++) {
+                var li = document.createElement('li');
+                var a = document.createElement('a');
+                a.href = 'view.html?id=' + encodeURIComponent(docs[i].id);
+                a.textContent = docs[i].title;
+                li.appendChild(a);
+                listEl.appendChild(li);
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读</title>
+    <link rel="stylesheet" href="../styles/view.css">
+</head>
+<body>
+    <main>
+        <div id="doc-view"></div>
+    </main>
+
+    <script src="../scripts/docs.js"></script>
+    <script>
+        (function () {
+            function escapeHtml(str) {
+                var div = document.createElement('div');
+                div.appendChild(document.createTextNode(str));
+                return div.innerHTML;
+            }
+
+            function escapeAttr(str) {
+                return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function getParam(name) {
+                var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+                return m ? decodeURIComponent(m[1]) : null;
+            }
+
+            var container = document.getElementById('doc-view');
+            var docId = getParam('id');
+
+            if (!docId) {
+                container.innerHTML = '<p class="error-msg">缺少文档 ID</p>';
+                return;
+            }
+
+            var doc = SiteDocs.getDoc(docId);
+
+            if (!doc) {
+                container.innerHTML = '<p class="error-msg">文档不存在或已被删除</p>';
+                return;
+            }
+
+            document.title = doc.title;
+
+            var catInfo = SiteDocs.getCategoryInfo(doc.category);
+            var catName = catInfo ? catInfo.name : doc.category;
+            var catGroup = catInfo ? catInfo.group : '';
+
+            var neighbors = SiteDocs.getNeighbors(docId);
+
+            var paragraphs = doc.content.split('\n').filter(function (line) {
+                return line.trim() !== '';
+            }).map(function (line) {
+                return '<p>' + escapeHtml(line.trim()) + '</p>';
+            }).join('\n');
+
+            var hasSong = doc.songId && doc.songId.trim();
+
+            if (hasSong) {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/netease-mini-player-v3@3.0.1/dist/nmpv3.min.js';
+                document.head.appendChild(script);
+            }
+
+            var songHtml = '';
+            if (hasSong) {
+                songHtml = [
+                    '<nmp-player',
+                    ' song-id="' + escapeAttr(doc.songId.trim()) + '"',
+                    ' embed-mode="page"',
+                    ' theme="light"',
+                    ' layout="dock"',
+                    ' position="bottom-right"',
+                    ' volume="0.5"',
+                    ' autoplay="false"',
+                    ' lyric="true"',
+                    ' default-minimized="true"',
+                    ' auto-pause-on-hidden="true"',
+                    ' remember="true"',
+                    ' draggable="true"',
+                    ' hotkeys="true"',
+                    ' idle-opacity="1"',
+                    ' api-base-url="https://api.hypcvgm.top/NeteaseMiniPlayer/nmp.php"',
+                    '></nmp-player>'
+                ].join('\n');
+            }
+
+            var prevHtml = neighbors.prev
+                ? '<a href="view.html?id=' + encodeURIComponent(neighbors.prev.id) + '">\u2b05\u4e0a\u4e00\u7bc7</a>'
+                : '<span class="nav-placeholder">\u2b05\u4e0a\u4e00\u7bc7</span>';
+
+            var nextHtml = neighbors.next
+                ? '<a href="view.html?id=' + encodeURIComponent(neighbors.next.id) + '">\u27a1\u4e0b\u4e00\u7bc7</a>'
+                : '<span class="nav-placeholder">\u27a1\u4e0b\u4e00\u7bc7</span>';
+
+            var authorHtml = '';
+            if (doc.author && doc.author.trim()) {
+                authorHtml = '<div class="author-line"><span>\u270d ' + escapeHtml(doc.author.trim()) + '</span></div>';
+            }
+
+            var html = [
+                '<h1>' + escapeHtml(doc.title) + '</h1>',
+                '<div class="category-tag"><span>' + escapeHtml(catGroup + ' / ' + catName) + '</span></div>',
+                authorHtml,
+                '<div class="content">' + paragraphs + '</div>',
+                songHtml,
+                '<div class="nav-row">' + prevHtml + nextHtml + '</div>',
+                '<div class="back-row">',
+                '  <a href="editor.html?id=' + encodeURIComponent(doc.id) + '">\u270f \u7f16\u8f91</a>',
+                '  <a href="../text.html">\u2190 \u8fd4\u56de\u6587\u5b57</a>',
+                '  <a href="../index.html">\u2190 \u56de\u5230\u9996\u9875</a>',
+                '</div>'
+            ].join('\n');
+
+            container.innerHTML = html;
+        })();
+    </script>
+</body>
+</html>

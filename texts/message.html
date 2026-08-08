@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言</title>
+    <link rel="stylesheet" href="../styles/directory.css">
+</head>
+<body>
+    <main>
+        <div class="intr">
+            <h1>留言</h1>
+            <p>欢迎留下你的足迹~</p>
+        </div>
+        <div class="section-divider">
+            <div class="dynamic-section">
+                <h2>留言列表</h2>
+                <ul class="dynamic-docs" id="doc-list"></ul>
+            </div>
+            <div class="add-new-entry">
+                <a href="editor.html?category=message">+ 写留言</a>
+            </div>
+        </div>
+        <div class="back-home">
+            <a href="../text.html">← 返回文字</a>
+            <a href="../index.html">← 回到首页</a>
+        </div>
+    </main>
+
+    <script src="../scripts/docs.js"></script>
+    <script>
+        (function () {
+            var listEl = document.getElementById('doc-list');
+            var docs = SiteDocs.getDocsByCategory('message');
+            if (!docs.length) {
+                listEl.innerHTML = '<li style="color:rgb(153,102,51);font-family:Verdana,sans-serif;font-size:15px;text-align:center;padding:16px 0;">暂无留言</li>';
+                return;
+            }
+            docs.sort(function (a, b) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            for (var i = 0; i < docs.length; i++) {
+                var li = document.createElement('li');
+                var a = document.createElement('a');
+                a.href = 'view.html?id=' + encodeURIComponent(docs[i].id);
+                var label = docs[i].title;
+                if (docs[i].author) {
+                    label += ' — ' + docs[i].author;
+                }
+                a.textContent = label;
+                li.appendChild(a);
+                listEl.appendChild(li);
+            }
+        })();
+    </script>
+</body>
+</html>

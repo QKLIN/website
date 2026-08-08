@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑文档</title>
+    <link rel="stylesheet" href="../styles/editor.css">
+</head>
+<body>
+    <main>
+        <h1 id="page-title">新建文档</h1>
+        <form id="editor-form">
+            <input type="hidden" id="doc-id" value="">
+            <div class="form-group">
+                <label for="doc-category">分区</label>
+                <select id="doc-category" required>
+                    <option value="">-- 请选择 --</option>
+                    <option value="sus_note">日志 / 迷思随记</option>
+                    <option value="sentence">日志 / 谩语</option>
+                    <option value="novel">创作 / 小说</option>
+                    <option value="poem">创作 / 诗歌</option>
+                    <option value="message">留言</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="doc-title">标题</label>
+                <input type="text" id="doc-title" placeholder="输入标题" required>
+            </div>
+            <div class="form-group">
+                <label for="doc-content">正文</label>
+                <textarea id="doc-content" placeholder="在此输入正文内容..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="doc-songid">网易云歌曲 ID（可选）</label>
+                <input type="text" id="doc-songid" placeholder="例如: 1498762933">
+                <small>填写后将在文末嵌入网易云播放器</small>
+            </div>
+            <div class="form-group">
+                <label for="doc-author">作者</label>
+                <input type="text" id="doc-author" placeholder="输入作者名">
+                <small id="author-hint">保存时需要验证身份</small>
+            </div>
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary" id="btn-save">保存</button>
+                <button type="button" class="btn btn-danger" id="btn-delete" style="display:none;">删除</button>
+                <a href="../text.html" class="btn btn-secondary">返回</a>
+            </div>
+        </form>
+        <div class="msg" id="msg"></div>
+        <div class="back-link">
+            <a href="../index.html">← 回到首页</a>
+        </div>
+    </main>
+
+    <script src="../scripts/docs.js"></script>
+    <script>
+        (function () {
+            var form = document.getElementById('editor-form');
+            var idInput = document.getElementById('doc-id');
+            var categorySelect = document.getElementById('doc-category');
+            var titleInput = document.getElementById('doc-title');
+            var contentTextarea = document.getElementById('doc-content');
+            var songIdInput = document.getElementById('doc-songid');
+            var authorInput = document.getElementById('doc-author');
+            var authorHint = document.getElementById('author-hint');
+            var pageTitle = document.getElementById('page-title');
+            var btnSave = document.getElementById('btn-save');
+            var btnDelete = document.getElementById('btn-delete');
+            var msgDiv = document.getElementById('msg');
+
+            var editId = getParam('id');
+
+            function getParam(name) {
+                var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+                return m ? decodeURIComponent(m[1]) : null;
+            }
+
+            function showMsg(text, type) {
+                msgDiv.textContent = text;
+                msgDiv.className = 'msg ' + type;
+                setTimeout(function () { msgDiv.className = 'msg'; }, 3000);
+            }
+
+            function loadDoc() {
+                var doc = SiteDocs.getDoc(editId);
+                if (doc) {
+                    pageTitle.textContent = '编辑文档';
+                    idInput.value = doc.id;
+                    categorySelect.value = doc.category;
+                    titleInput.value = doc.title;
+                    contentTextarea.value = doc.content;
+                    songIdInput.value = doc.songId || '';
+                    authorInput.value = doc.author || '';
+                    btnSave.textContent = '更新';
+                    btnDelete.style.display = '';
+                    updateAuthorHint();
+                }
+            }
+
+            function updateAuthorHint() {
+                var cat = categorySelect.value;
+                if (SiteDocs.isProtectedCategory(cat)) {
+                    authorHint.textContent = '需要验证作者身份';
+                    authorInput.required = true;
+                } else {
+                    authorHint.textContent = '可选';
+                    authorInput.required = false;
+                }
+            }
+
+            categorySelect.addEventListener('change', updateAuthorHint);
+
+            if (editId) {
+                loadDoc();
+            } else {
+                var presetCategory = getParam('category');
+                if (presetCategory && SiteDocs.getCategoryInfo(presetCategory)) {
+                    categorySelect.value = presetCategory;
+                }
+                updateAuthorHint();
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                var category = categorySelect.value;
+                var title = titleInput.value.trim();
+                var content = contentTextarea.value.trim();
+                var songId = songIdInput.value.trim();
+                var author = authorInput.value.trim();
+
+                if (!category) {
+                    showMsg('请选择分区', 'error');
+                    return;
+                }
+                if (!title) {
+                    showMsg('请输入标题', 'error');
+                    return;
+                }
+                if (!content) {
+                    showMsg('请输入正文内容', 'error');
+                    return;
+                }
+
+                if (SiteDocs.isProtectedCategory(category)) {
+                    if (!author) {
+                        showMsg('请输入作者', 'error');
+                        return;
+                    }
+                    if (author !== SiteDocs.AUTHOR_KEY) {
+                        showMsg('作者验证失败，无法保存', 'error');
+                        return;
+                    }
+                }
+
+                var docData = {
+                    category: category,
+                    title: title,
+                    content: content,
+                    songId: songId || '',
+                    author: author || ''
+                };
+
+                var saved;
+                if (editId) {
+                    saved = SiteDocs.updateDoc(editId, docData);
+                    if (saved) {
+                        showMsg('文档已更新！', 'success');
+                    }
+                } else {
+                    saved = SiteDocs.addDoc(docData);
+                    if (saved) {
+                        idInput.value = saved.id;
+                        editId = saved.id;
+                        pageTitle.textContent = '编辑文档';
+                        btnSave.textContent = '更新';
+                        btnDelete.style.display = '';
+                        showMsg('文档已保存！', 'success');
+                        history.replaceState(null, '', '?id=' + saved.id);
+                    }
+                }
+            });
+
+            btnDelete.addEventListener('click', function () {
+                if (!editId) return;
+
+                var doc = SiteDocs.getDoc(editId);
+                if (doc && SiteDocs.isProtectedCategory(doc.category)) {
+                    var author = prompt('请输入作者名以确认删除：');
+                    if (author !== SiteDocs.AUTHOR_KEY) {
+                        showMsg('作者验证失败，无法删除', 'error');
+                        return;
+                    }
+                }
+
+                if (!confirm('确定要删除这篇文档吗？此操作不可撤销。')) return;
+
+                if (SiteDocs.deleteDoc(editId)) {
+                    showMsg('文档已删除', 'success');
+                    setTimeout(function () {
+                        location.href = '../text.html';
+                    }, 1000);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -60,8 +60,8 @@ var SiteDocs = (function () {
                 result.push(ld);
             } else if (ld.id && map[ld.id]) {
                 var rd = map[ld.id];
-                var rt = new Date(rd.updatedAt || rd.createdAt || 0).getTime();
-                var lt = new Date(ld.updatedAt || ld.createdAt || 0).getTime();
+                var rt = new Date(rd.updatedAt || rd.createdAt || '2000-01-01').getTime();
+                var lt = new Date(ld.updatedAt || ld.createdAt || '2000-01-01').getTime();
                 if (lt > rt) {
                     for (var k = 0; k < result.length; k++) {
                         if (result[k].id === ld.id) {
@@ -77,7 +77,7 @@ var SiteDocs = (function () {
     }
 
     function init() {
-        fetch(JSON_PATH)
+        fetch(JSON_PATH + '?t=' + Date.now())
             .then(function (res) {
                 if (!res.ok) throw new Error('fetch failed');
                 return res.json();

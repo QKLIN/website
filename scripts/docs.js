@@ -2,7 +2,14 @@ var SiteDocs = (function () {
     'use strict';
 
     var STORAGE_KEY = 'qkli_documents';
-    var JSON_PATH = '/data/documents.json';
+    var JSON_PATH = (function () {
+        var path = window.location.pathname;
+        var m = path.match(/^(\/[^/]+)\//);
+        if (m && m[1]) {
+            return m[1] + '/data/documents.json';
+        }
+        return '/data/documents.json';
+    })();
 
     var CATEGORIES = {
         sus_note:  { name: '迷思随记', group: '日志', protected: true },

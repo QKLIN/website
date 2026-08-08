@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QKLI的网站</title>
-    <link rel="stylesheet" href="styles_index.css">
+    <link rel="stylesheet" href="styles/index.css">
 </head>
 <body>
     <main>
@@ -24,9 +24,20 @@
             </p>
         </section>
         <section class="moe">
-            <img src="img/01.png" alt="一张颜文字图片">
+            <img id = "meow" src="img/01.png" alt="一张颜文字图片">
+            <audio id = "clmeow" src = "meow.wav" preload="auto"></audio>
             <p>喵~</p>
         </section>
+        <script>
+            document.getElementById("meow").onclick = function(){
+                var meow = document.getElementById('clmeow');
+                if (meow.paused){
+                    meow.play();
+                }else{
+                    meow.pause();
+                }
+            }
+        </script>
     </main>
 </body>
 </html>

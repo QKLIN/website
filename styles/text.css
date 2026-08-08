@@ -132,6 +132,43 @@ main {
     text-decoration: underline;
 }
 
+.toolbar {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.btn-import {
+    padding: 6px 16px;
+    font-family: 'Verdana', sans-serif;
+    font-size: 13px;
+    color: rgb(153, 102, 51);
+    background: transparent;
+    border: 1px solid rgba(204, 102, 0, 0.4);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-import:hover {
+    background-color: rgba(204, 102, 0, 0.1);
+    color: rgb(204, 102, 0);
+}
+
+.import-msg {
+    display: inline-block;
+    margin-left: 10px;
+    font-family: 'Verdana', sans-serif;
+    font-size: 13px;
+}
+
+.import-msg.success {
+    color: rgb(50, 120, 50);
+}
+
+.import-msg.error {
+    color: rgb(180, 60, 60);
+}
+
 @media (max-width: 600px) {
     main {
         margin: 24px 12px;

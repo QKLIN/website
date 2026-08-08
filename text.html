@@ -49,9 +49,95 @@
                 </ul>
             </div>
         </section>
+        <div class="toolbar">
+            <input type="file" id="import-file" accept=".json" style="display:none;">
+            <button type="button" id="btn-import" class="btn-import">导入 JSON</button>
+            <span class="import-msg" id="import-msg"></span>
+        </div>
         <div class="back-home">
             <a href="index.html">← 回到首页</a>
         </div>
     </main>
+
+    <script src="scripts/docs.js"></script>
+    <script>
+        SiteDocs.ready(function () {
+            var btnImport = document.getElementById('btn-import');
+            var fileInput = document.getElementById('import-file');
+            var msgSpan = document.getElementById('import-msg');
+
+            btnImport.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function () {
+                var file = fileInput.files[0];
+                if (!file) return;
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        var imported = JSON.parse(e.target.result);
+                        if (!Array.isArray(imported)) {
+                            showMsg('JSON 格式错误：需要文档数组', 'error');
+                            return;
+                        }
+
+                        var existing = SiteDocs.loadAll();
+                        var merged = mergeDocs(imported, existing);
+                        localStorage.setItem('qkli_documents', JSON.stringify(merged));
+                        showMsg('成功导入 ' + imported.length + ' 条文档（合并后共 ' + merged.length + ' 条）。刷新页面后生效。', 'success');
+                    } catch (err) {
+                        showMsg('JSON 解析失败：' + err.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+                fileInput.value = '';
+            });
+
+            function mergeDocs(imported, existing) {
+                var map = {};
+                var result = [];
+
+                for (var i = 0; i < imported.length; i++) {
+                    var d = imported[i];
+                    if (d.id) {
+                        map[d.id] = d;
+                        result.push(d);
+                    }
+                }
+
+                for (var j = 0; j < existing.length; j++) {
+                    var ed = existing[j];
+                    if (ed.id && !map[ed.id]) {
+                        result.push(ed);
+                    } else if (ed.id && map[ed.id]) {
+                        var idoc = map[ed.id];
+                        var it = new Date(idoc.updatedAt || idoc.createdAt || '2000-01-01').getTime();
+                        var et = new Date(ed.updatedAt || ed.createdAt || '2000-01-01').getTime();
+                        if (et > it) {
+                            for (var k = 0; k < result.length; k++) {
+                                if (result[k].id === ed.id) {
+                                    result[k] = ed;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            function showMsg(text, type) {
+                msgSpan.textContent = text;
+                msgSpan.className = 'import-msg ' + type;
+                setTimeout(function () {
+                    msgSpan.textContent = '';
+                    msgSpan.className = 'import-msg';
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>
